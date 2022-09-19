@@ -7,7 +7,7 @@ about:
 
 ## About this blog
 
-Two early career ecologists reflecting on things, ecology, R, and all that.
+Two early career ecologists pondering on things, ecology, R, and all that.
 
 [Max Lindmark](https://maxlindmark.github.io/) is a Postdoc at the Institute of Marine Research -- SLU Aqua
 

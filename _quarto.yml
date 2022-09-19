@@ -9,7 +9,7 @@ website:
       - text: About 
         href: about.qmd
       - icon: github
-        href: https://github.com/
+        href: https://github.com/speciesinsite/speciesinsite.github.io
 format:
   html:
     theme: litera
