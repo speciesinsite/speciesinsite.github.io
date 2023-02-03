@@ -1,0 +1,158 @@
+---
+title: "Exemplifying random effects with a fish growth dataset"
+author: "Max Lindmark"
+date: "2023-02-03"
+categories: [R, code, function]
+image: "image.jpg"
+---
+
+Here we'll use a cool data set of back-calculated length-at-age in perch, *Perca fluviatilis*. This means we have the estimated length at previous ages for all fish, and we can use this data to illustrate the usefulness of random effects when you want to account for non-random variation among groups to someone who isn't yet very familiar with multilevel or mixed effects models. The data come from this preprint [Lindmark *et al*., 2023](https://www.biorxiv.org/content/10.1101/2022.04.13.488128v3), which as of writing is in review. Data and code can be found on [GitHub](https://github.com/maxlindmark/warm-life-history) and deposited on [zenodo](https://zenodo.org/record/7551400#.Y90OARPMIUE). First we'll load some packages, read, clean and filter the data.
+
+```{r, message=FALSE, warning=FALSE}
+library(RCurl)
+library(dplyr)
+library(tidyr)
+library(patchwork)
+library(viridis)
+library(lme4)
+library(ggplot2); theme_set(theme_light())
+# Discrete colors
+scale_colour_discrete <- function(...) {
+  scale_colour_viridis(discrete = TRUE, option = "cividis")
+}
+
+# Read, crop and clean data
+d <- readr::read_csv("https://raw.githubusercontent.com/maxlindmark/warm-life-history/master/data/for_fitting/growth_scaling_dat.csv") %>% 
+  filter(area == "FM" & catch_age == 6) %>% 
+  dplyr::select(length, catch_age, back_calc_age, ID) %>% 
+  filter(ID %in% head(unique(ID), 50)) %>% # filter 50 individuals
+  rename(age = back_calc_age) %>% 
+  mutate(age_sq = age*age)
+```
+
+First plot the data to see what we are trying to estimate (how length relates to age):
+
+```{r}
+# Plot length vs age, we'll use a polynomial to account for the curvature
+ggplot(d, aes(age, length)) + 
+  geom_point() + 
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2))
+```
+
+Now we can fit a model of length as a function of age (and a squared term just because it isn't exactly linear in this age-range). 
+
+```{r}
+# First a simple lm
+m <- lm(length ~ age + age_sq, data = d)
+
+summary(m)
+```
+
+The residuals look nice! Or?
+
+```{r}
+# Extract residuals
+d$res_m <- residuals(m)
+
+# Plot!
+ggplot(d, aes(res_m)) + 
+  geom_histogram() + 
+  labs(x = "residuals simple linear regression")
+```
+
+If we group them by individual fish we see something...
+
+```{r}
+ggplot(d, aes(ID, res_m, color = ID)) + 
+  geom_boxplot() +  
+  guides(color = "none") +
+  theme(axis.text.x = element_text(angle = 90)) + 
+  geom_hline(yintercept = 0, linetype = 2, color = "tomato3") + 
+  labs(y = "residuals from random slope and intercept model")
+```
+
+Many boxes do not really overlap 0 when grouped by individual like this. Observations within an individual tend to all be above or below the average! As an example, we can plot the average size at age 1 for two groups: individuals that are below and above the mean size when they are age 5. We see that individuals that are bigger when 5 years where also on average bigger as 1 year olds.
+
+```{r}
+d5 <- d %>% 
+  filter(age == 5) %>% 
+  mutate(mean_length = mean(length)) %>% 
+  mutate(big_ind = ifelse(length > mean_length, "Yes", "No")) %>% 
+  dplyr::select(big_ind, ID)
+
+d %>% left_join(d5, by = "ID") %>% 
+  filter(age == 1) %>% 
+  ggplot(aes(big_ind, length)) + 
+  geom_boxplot(width = 0.2, fill = NA) + 
+  geom_jitter(height = 0, width = 0.1) + 
+  labs(x = "bigger than average as a 5 year old?")
+```
+
+How to deal with this? We can let the variable `ID` interact with age. This gives every individual a unique slope and intercept.
+
+```{r}
+#| fig-height: 9
+
+# First a simple lm
+m2 <- lm(length ~ age*ID + age_sq, data = d)
+
+# Extract residuals
+d$res_m2 <- residuals(m2)
+
+# Make data long for plotting
+d %>% 
+  pivot_longer(c(res_m, res_m2)) %>% 
+  mutate(name2 = ifelse(name == "res_m", "No ID effect", "Age*ID interaction")) %>% 
+  ggplot(aes(ID, value, color = ID)) + 
+  facet_wrap(~name2, ncol = 1) +
+  geom_boxplot() +  
+  guides(color = "none") +
+  theme(axis.text.x = element_text(angle = 90)) + 
+  geom_hline(yintercept = 0, linetype = 2, color = "tomato3")
+```
+
+While the issues with the residuals got "fixed", it wasn't cheap. Just look at the summary table:
+
+```{r}
+summary(m2)
+```
+
+That's a lot parameters to estimate, and it's not even parameters we are interested in! We just wanted to fix the residual issues. We are seeking the average intercept and slope in this population, not the intercept and slope of each fish.
+
+Enter random effects! There are a few different reasons for why you would want to model effects as random factors. [Here's a more thorough example on the topic](https://ourcodingclub.github.io/tutorials/mixed-models/index.html). In our case, we just want to control for systematic variation from our use of multiple data points per individual.
+
+We consider two cases here: (1) within ID's, there's a negative correlation between intercept and slope and (2) intercepts and slopes vary among individuals (see the `(x|ID)` addition). We fit these using the `lme4` package.
+
+```{r}
+# Random intercept only
+m3 <- lmer(length ~ age + age_sq + (1|ID), data = d)
+
+# Random intercept and slope
+m4 <- lmer(length ~ age + age_sq + (1 + age|ID), data = d)
+
+# We can compare them with AIC. Random intercept is more parsimonious
+AIC(m3, m4)
+```
+
+There seems to be support for both intercepts and age slopes to vary among individuals based on AIC. We can now have a look at the model:
+
+```{r}
+# Inspect the model
+summary(m4)
+```
+
+Here we see two things: our fixed effects are now our population level estimates, from which each individual deviate, and that the intercept and age slope are very correlated. What about the residuals?
+
+```{r}
+# Extract residuals
+d$res_m4 <- residuals(m4)
+
+ggplot(d, aes(ID, res_m4, color = ID)) + 
+  geom_boxplot() +  
+  guides(color = "none") +
+  theme(axis.text.x = element_text(angle = 90)) + 
+  geom_hline(yintercept = 0, linetype = 2, color = "tomato3") + 
+  labs(y = "residuals from random slope and intercept model")
+```
+
+Beautiful! And this is just an example. With the full data set once could further explore adding a fixed effect of area (warm/cold) and different random effect structures and models. But for now, that's it!

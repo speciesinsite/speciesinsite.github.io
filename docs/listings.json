@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/random_effects/index.html",
       "/posts/latandlon/index.html"
     ]
   }
