@@ -166,7 +166,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
                                 <div class="quarto-categories">
                 <div class="quarto-category">R</div>
                 <div class="quarto-category">code</div>
-                <div class="quarto-category">function</div>
+                <div class="quarto-category">stats</div>
               </div>
                   </div>
   </div>
@@ -201,7 +201,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<p>Here we’ll use a cool data set of back-calculated length-at-age in perch, <em>Perca fluviatilis</em>. This means we have the estimated length at previous ages for all fish, and we can use this data to illustrate the usefulness of random effects when you want to account for non-random variation among groups to someone who isn’t yet very familiar with multilevel or mixed effects models. The data come from this preprint <a href="https://www.biorxiv.org/content/10.1101/2022.04.13.488128v3">Lindmark <em>et al</em>., 2023</a>, which as of writing is in review. Data and code can be found on <a href="https://github.com/maxlindmark/warm-life-history">GitHub</a> and deposited on <a href="https://zenodo.org/record/7551400#.Y90OARPMIUE">zenodo</a>. First we’ll load some packages, read, clean and filter the data.</p>
+<p>Here we’ll use a cool data set of back-calculated length-at-age in perch, <em>Perca fluviatilis</em>. This means we have the estimated length at previous ages for all fish, and we can use this data to illustrate the usefulness of random effects when you want to account for non-random variation among groups to someone who isn’t yet very familiar with multilevel or mixed effects models. The data come from this preprint <a href="https://www.biorxiv.org/content/10.1101/2022.04.13.488128v3">Lindmark <em>et al</em>., 2023</a>, which as of writing is in review. Data and code can be found on <a href="https://github.com/maxlindmark/warm-life-history">GitHub</a> and deposited on <a href="https://zenodo.org/record/7551400#.Y90OARPMIUE">Zenodo</a>. First we’ll load some packages, read, clean and filter the data.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RCurl)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
