@@ -9,6 +9,6 @@ about:
 
 Two early career ecologists pondering on things, ecology, R, and all that.
 
-[Max Lindmark](https://maxlindmark.github.io/) is a Postdoc at the Institute of Marine Research -- SLU Aqua
+[Max Lindmark](https://maxlindmark.github.io/) is a Researcher at the Institute of Marine Research -- SLU Aqua
 
 [Federico Maioli](https://ruizfederico.github.io/) is a PhD student at the University of Bologna
