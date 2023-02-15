@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.251">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Max Lindmark">
+<meta name="dcterms.date" content="2023-02-04">
+
+<title>Species i in site j - Fitting a Pütter/von Bertalanffy ODE in brms</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Species i in site j</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">About</a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/speciesinsite/speciesinsite.github.io"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Fitting a Pütter/von Bertalanffy ODE in brms</h1>
+                                <div class="quarto-categories">
+                <div class="quarto-category">R</div>
+                <div class="quarto-category">Bayesian</div>
+                <div class="quarto-category">stats</div>
+                <div class="quarto-category">ode</div>
+                <div class="quarto-category">brms</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Max Lindmark </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">February 4, 2023</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p>The Pütter growth model <span class="citation" data-cites="puetterStudienUeberPhysiologische1920">(<a href="#ref-puetterStudienUeberPhysiologische1920" role="doc-biblioref">Pütter 1920</a>)</span> states that growth is the result of tissue synthesis (<em>“anabolism”</em>) and tissue breakdown (“<em>catabolism</em>”), expressed in the formula:</p>
+<p><span class="math display">\[dW/dt=aW^y-bW^z\]</span> In the 1930’s, Ludwig von Bertalanffy published a series of papers (1932, 1934 and 1938. 1938 also happens to be the year <a href="https://en.wikipedia.org/wiki/Ludwig_von_Bertalanffy">he joined the Nazi party</a>). In these, he introduced assumptions based on geometry that much simplified the solution of the Pütter model. Specifically, <span class="math inline">\(z=1\)</span><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. This allowed him to easily recast the Pütter ODE in terms of weight as a function of time (this is the version in <span class="citation" data-cites="essingtonBertalanffyGrowthFunction2001">(<a href="#ref-essingtonBertalanffyGrowthFunction2001" role="doc-biblioref">2001</a>)</span>):</p>
+<p><span class="math display">\[W_t=W_\infty(1-\exp(-K_{sp}(t-t_0)))^3\]</span> In other words, the von Bertalanffy equation (VBGE) is a special case of the Pütter model, where catabolism is proportional to mass.</p>
+<p>An even more special version of this model is the <strong>specialized</strong> von Bertalanffy equation <span class="citation" data-cites="bevertonDynamicsExploitedFish1957 paulyRelationshipsGillSurface1981 ursinMathematicalModelAspects1967">(<a href="#ref-bevertonDynamicsExploitedFish1957" role="doc-biblioref">Beverton and Holt 1957</a>; <a href="#ref-paulyRelationshipsGillSurface1981" role="doc-biblioref">Pauly 1981</a>; <a href="#ref-ursinMathematicalModelAspects1967" role="doc-biblioref">Ursin 1967</a>)</span>. By also assuming that <span class="math inline">\(W\propto L^3\)</span> and that <span class="math inline">\(b=2/3\)</span>, you can cast this as a model of length (which in easier to measure in a fish while on a boat):</p>
+<p><span class="math display">\[L_t=L_\infty(1-\exp(-K(t-t_0)))\]</span> And this is the version most fisheries biologists are familiar with. It’s the most common model for describing length as a function of age, very likely because it was adopted by Beverton and Holt <span class="citation" data-cites="bevertonDynamicsExploitedFish1957">(<a href="#ref-bevertonDynamicsExploitedFish1957" role="doc-biblioref">1957</a>)</span>. von Bertalanffy <span class="citation" data-cites="vonbertalanffyLawsMetabolismGrowth1957">(<a href="#ref-vonbertalanffyLawsMetabolismGrowth1957" role="doc-biblioref">1957</a>)</span> writes:</p>
+<p>“<em>It appears that the ”Bertalanffy growth equation” is widely applied in international fisheries. It has been found to fit the commercially exploited fish species studied by the Fisheries Laboratory of the Ministry of Agriculture, Fisheries and Food at Lowestoft (England), with the possible exception of the hake (Wimpenny, pers. commun.)</em>”<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<p>Now, <span class="math inline">\(b=2/3\)</span> stems originally from the “<em>surface rule</em>” <span class="citation" data-cites="rubnerGesetzeEnergieverbrauchsBei1902">(<a href="#ref-rubnerGesetzeEnergieverbrauchsBei1902" role="doc-biblioref">Rubner 1902</a>)</span>, basically stating that since a (body) surface scales with a 2/3 power to the volume, and heat loss is proportional to the body surface, and because each each calorie must be replaced to maintain a fixed temperature (37°), “production” is proportional to <span class="math inline">\(W^{2/3}\)</span>. This doesn’t apply to ectotherms, such as fish, and in those cases the 2/3 exponent is argued to be close to the exponent of standard metabolic rate (even though we know now it’s closer to 0.8 <span class="citation" data-cites="clarkeScalingMetabolicRate1999 jerdeStrongEvidenceIntraspecific2019 lindmarkOptimumGrowthTemperature2022">(e.g., <a href="#ref-clarkeScalingMetabolicRate1999" role="doc-biblioref">Clarke and Johnston 1999</a>; <a href="#ref-jerdeStrongEvidenceIntraspecific2019" role="doc-biblioref">Jerde et al. 2019</a>; <a href="#ref-lindmarkOptimumGrowthTemperature2022" role="doc-biblioref">Lindmark, Ohlberger, and Gårdmark 2022</a>)</span>. Or, as Pauly suggests in his Gill-Oxygen Limitation Theory (GOLT): the exponent <span class="math inline">\(y\)</span> reflects the scaling of gill surface area in relation to weight, such that as ectotherms growh in size, they increasingly struggle to meet oxygen demands which scale in proportion to mass.</p>
+<p>Ok, ok, enough background. The point is this: sometimes you want the parameters <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> rather than <span class="math inline">\(W_\infty\)</span>, <span class="math inline">\(t_0\)</span>, and <span class="math inline">\(K_{sp}\)</span>. You can convert between them though; <span class="math inline">\(K_{sp}=b/3\)</span> and <span class="math inline">\(W_\infty=(a/b)^{1/(1–y)}\)</span> <span class="citation" data-cites="essingtonBertalanffyGrowthFunction2001">(<a href="#ref-essingtonBertalanffyGrowthFunction2001" role="doc-biblioref">Essington, Kitchell, and Walters 2001</a>)</span>. But note! This is only legal when you make the assumptions above! And you may not always want that. Maybe you want to estimate <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> from data instead. And why not <span class="math inline">\(y\)</span> and <span class="math inline">\(z\)</span> when you are at it? Maybe you don’t buy the arguments for the mechanistic basis of these parameters and want to take an empirical approach to fitting the Pütter model. Maybe you want to extend or modify the Pütter model, as in e.g., Marshall &amp; White <span class="citation" data-cites="marshallHaveWeOutgrown2019">(<a href="#ref-marshallHaveWeOutgrown2019" role="doc-biblioref">2019</a>)</span> or Thunell et al., <span class="citation" data-cites="thunellOptimalEnergyAllocation">(<a href="#ref-thunellOptimalEnergyAllocation" role="doc-biblioref">n.d.</a>)</span>. And lastly, you may want the full uncertainty on <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> directly, e.g., via a posterior distribution.</p>
+<p>Below I show how we can fit the Pütter ODE model to data using <a href="https://paul-buerkner.github.io/brms/">brms</a>. As in the last post, we will use the perch (<em>Perca fluviatilis</em>) data set containing back-calculated length-at-age. First we’ll load, filter, and plot the data:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RCurl)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(viridis)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(parallel)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(truncnorm)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidybayes)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2); <span class="fu">theme_set</span>(<span class="fu">theme_light</span>())</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Read, crop and clean data</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_delim</span>(<span class="st">"https://raw.githubusercontent.com/maxlindmark/warm-life-history/master/data/cleaned/size_at_age_BT_FM_1970-2004.csv"</span>, <span class="at">delim =</span> <span class="st">";"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">length =</span> length<span class="sc">/</span><span class="dv">10</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">ID =</span> <span class="fu">paste</span>(area, ID, <span class="at">sep =</span> <span class="st">"_"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(ID) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">n =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(area <span class="sc">==</span> <span class="st">"FM"</span> <span class="sc">&amp;</span> catch_age <span class="sc">==</span> <span class="dv">9</span> <span class="sc">&amp;</span> <span class="sc">!</span>gear <span class="sc">==</span> <span class="dv">32</span> <span class="sc">&amp;</span> n <span class="sc">&lt;=</span> catch_age) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(length, catch_age, age, ID) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ID <span class="sc">%in%</span> <span class="fu">head</span>(<span class="fu">unique</span>(ID), <span class="dv">100</span>)) <span class="sc">%&gt;%</span> <span class="co"># filter 100 individuals</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">t =</span> age) <span class="sc">%&gt;%</span> </span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">w =</span> <span class="fl">0.01</span><span class="sc">*</span>length<span class="sc">^</span><span class="dv">3</span>)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(d, <span class="fu">aes</span>(t, w, <span class="at">color =</span> ID)) <span class="sc">+</span> </span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">height =</span> <span class="dv">0</span>) <span class="sc">+</span> </span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span> </span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="st">"none"</span>) <span class="sc">+</span> </span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis</span>(<span class="at">option =</span> <span class="st">"E"</span>, <span class="at">discrete =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> </span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Back-calculated weight at age grouped by individual"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For fitting</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>nCores <span class="ot">&lt;-</span> <span class="fu">detectCores</span>()</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">mc.cores =</span> nCores)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>As can be seen, we have multiple observations per individual, and they either fast or slow growers. This will cause some unwanted residuals patterns unless accounted for, so we will allow the Pütter parameters to vary by individual (<code>ID</code> as random effect). Below I define the model. I’m using the simple exponential decay model in <a href="https://discourse.mc-stan.org/t/new-cmdstan-ode-solvers-and-brms/24173">this</a> Stan forum post as a template for aunivariate ODE, but I’ve also read up on the Lotka-Volterra competition model in brms from <a href="https://www.magesblog.com/post/2021-02-08-fitting-multivariate-ode-models-with-brms/">Mage’s blog</a> and <a href="https://bookdown.org/content/4857/generalized-linear-madness.html">Solomon Kurz’s brms-translation of Statistical Rethinking</a>. For speed (it still takes a solid 8h to fit this model!) I use only the first 100 individuals in the data set (there are 12786!!!), and I only estimate <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>, while setting <span class="math inline">\(y=2/3\)</span> and <span class="math inline">\(z=1\)</span>. In theory, one could add nested random effects (ID within cohorts for instance), or let the standard deviation vary with time.</p>
+<section id="a-pütter-ode-model-in-brms" class="level2">
+<h2 class="anchored" data-anchor-id="a-pütter-ode-model-in-brms">A Pütter ODE model in brms</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Using this exponential decay model as a template:</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># https://discourse.mc-stan.org/t/new-cmdstan-ode-solvers-and-brms/24173</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Simple vbge model</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>vb_model <span class="ot">&lt;-</span> <span class="st">"</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="st">  real[] ode_vb(real t, //time</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="st">  real [] w,         // the rates</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="st">  real [] theta,     // the parameters</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="st">  real [] x_r,       // data constant (not used)</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="st">  int[] x_i){        // data constant (not used)</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="st">  real dwdt[1];      // dimension of ODEs</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="st">  dwdt[1] = theta[1]*w[1]^(0.67) - theta[2]*w[1]^1; // growth ODE</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="st">  return dwdt;       // returns a 3-dimensional array     </span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="st">  }</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="st">// this is the function call from brms, integration of ODEs:</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="st">real vb_ode(real t, real weight0, real a, real b) {</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="st">  real w0[1]; //one initial value</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="st">  real theta[2]; </span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="st">  real w[1,1]; //ODE solution</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="st">  w0[1] = weight0; //initial values</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="st">  theta[1] = a; </span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="st">  theta[2] = b; </span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="st">  w = integrate_ode_rk45(ode_vb,</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="st">                         w0,</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="st">                         0,</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="st">                         rep_array(t, 1),</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="st">                         theta,</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="st">                         rep_array(0.0,0),</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="st">                         rep_array(1,1),</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="st">                         0.00001,0.00001,100);</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="st">// Return relevant values</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="st">    return(w[1,1]);</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="st">"</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>vb_formula <span class="ot">&lt;-</span> <span class="fu">bf</span>(w <span class="sc">~</span> <span class="fu">vb_ode</span>(t, weight0, a, b),</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>                 weight0 <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>                 a <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>ID),</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>                 b <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>ID),</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>                 <span class="at">nl =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="co"># This priors could be discussed...</span></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>vb_priors <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">prior</span>(<span class="fu">normal</span>(<span class="fl">0.00001</span>, <span class="dv">1</span>), <span class="at">nlpar =</span> weight0, <span class="at">lb =</span> <span class="fl">0.00001</span>),</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>               <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="dv">1</span>, <span class="dv">1</span>), <span class="at">nlpar =</span> a, <span class="at">lb =</span> <span class="fl">0.00001</span>),</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>               <span class="fu">prior</span>(<span class="fu">normal</span>(<span class="fl">0.5</span>, <span class="dv">1</span>), <span class="at">nlpar =</span> b, <span class="at">lb =</span> <span class="fl">0.00001</span>),</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>               <span class="fu">prior</span>(<span class="fu">cauchy</span>(<span class="dv">0</span>, <span class="dv">10</span>), <span class="at">class =</span> sigma))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now that all functions have been defined, we can feed that into the <code>brm</code> function. I use a Lognormal distribution to ensure we don’t predict negative weights.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># startTime &lt;- Sys.time()</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>vb_fit <span class="ot">&lt;-</span> <span class="fu">brm</span>(<span class="at">data =</span> d,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">family =</span> <span class="fu">lognormal</span>(),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">formula =</span> vb_formula,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>              <span class="at">prior =</span> vb_priors,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">init =</span> <span class="dv">0</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">iter =</span> <span class="dv">4000</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">chains =</span> <span class="dv">3</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">cores =</span> <span class="dv">3</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">backend =</span> <span class="st">"cmdstanr"</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>              <span class="at">control =</span> <span class="fu">list</span>(<span class="at">adapt_delta =</span> <span class="fl">0.9</span>),</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>              <span class="at">stanvars =</span> <span class="fu">stanvar</span>(<span class="at">scode =</span> vb_model, <span class="at">block =</span> <span class="st">"functions"</span>),</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>              <span class="at">sample_prior =</span> <span class="st">"yes"</span>)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co"># endTime &lt;- Sys.time()</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co"># endTime - startTime</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co"># saveRDS(vb_fit, "posts/vbge_ode/vb_fit.rds")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can now check our model summary and plot it to inspect posteriors and chain convergence:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check the model!</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(vb_fit)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Family: lognormal 
+  Links: mu = identity; sigma = identity 
+Formula: w ~ vb_ode(t, weight0, a, b) 
+         weight0 ~ 1
+         a ~ 1 + (1 | ID)
+         b ~ 1 + (1 | ID)
+   Data: d (Number of observations: 900) 
+  Draws: 3 chains, each with iter = 4000; warmup = 2000; thin = 1;
+         total post-warmup draws = 6000
+
+Group-Level Effects: 
+~ID (Number of levels: 100) 
+                Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sd(a_Intercept)     0.06      0.01     0.05     0.07 1.00      897     1736
+sd(b_Intercept)     0.01      0.01     0.00     0.02 1.01      281      463
+
+Population-Level Effects: 
+                  Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+weight0_Intercept     0.41      0.03     0.35     0.47 1.00     2691     3823
+a_Intercept           2.35      0.05     2.25     2.44 1.00     2497     3598
+b_Intercept           1.33      0.03     1.27     1.39 1.00     2672     3635
+
+Family Specific Parameters: 
+      Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sigma     0.30      0.01     0.29     0.32 1.00     6809     4077
+
+Draws were sampled using sample(hmc). For each parameter, Bulk_ESS
+and Tail_ESS are effective sample size measures, and Rhat is the potential
+scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(vb_fit, <span class="at">N=</span><span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Looks fine! Let’s do some data wrangling and plot prior vs posterior (note we can do this because we set <code>sample_prior = "yes"</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>draws <span class="ot">&lt;-</span> brms<span class="sc">::</span><span class="fu">as_draws_df</span>(vb_fit) <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(b_weight0_Intercept, b_a_Intercept, b_b_Intercept, </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                prior_b_weight0, prior_b_a, prior_b_b) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">everything</span>()) <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">group =</span> <span class="fu">ifelse</span>(<span class="fu">grepl</span>(<span class="st">"prior"</span>, name), <span class="st">"Prior"</span>, <span class="st">"Posterior"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Parameter =</span> <span class="fu">str_remove</span>(name, <span class="at">pattern =</span> <span class="st">"_Intercept"</span>),</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">Parameter =</span> <span class="fu">str_remove</span>(Parameter, <span class="at">pattern =</span> <span class="st">"prior_"</span>))</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(draws)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 4
+  name                value group     Parameter
+  &lt;chr&gt;               &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;    
+1 b_weight0_Intercept 0.458 Posterior b_weight0
+2 b_a_Intercept       2.30  Posterior b_a      
+3 b_b_Intercept       1.30  Posterior b_b      
+4 prior_b_weight0     0.255 Prior     b_weight0
+5 prior_b_a           1.77  Prior     b_a      
+6 prior_b_b           0.517 Prior     b_b      </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot prior vs posteriors</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(draws) <span class="sc">+</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="fu">aes</span>(<span class="at">x =</span> value, <span class="at">fill =</span> group), <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Parameter, <span class="at">scales =</span> <span class="st">"free"</span>) <span class="sc">+</span> </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette =</span> <span class="st">"Set1"</span>, <span class="at">name =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="fl">0.85</span>, <span class="fl">0.25</span>)) <span class="sc">+</span> </span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Value"</span>, <span class="at">y =</span> <span class="st">"Density"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Now let’s predict from the model onto a new data (just a dataframe with time steps, representing year) and add uncertainty bands.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>nd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">max</span>(d<span class="sc">$</span>t))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># We now need to expose the functions to R</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">expose_functions</span>(vb_fit, <span class="at">vectorize =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">predicted_draws</span>(vb_fit, <span class="at">newdata =</span> nd, <span class="at">ndraws =</span> <span class="dv">1000</span>, <span class="at">re_formula =</span> <span class="cn">NA</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(pred, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.factor</span>(t), <span class="at">y =</span> w)) <span class="sc">+</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_lineribbon</span>(<span class="fu">aes</span>(<span class="at">y =</span> .prediction), <span class="at">.width =</span> <span class="fu">c</span>(.<span class="dv">99</span>, .<span class="dv">95</span>, .<span class="dv">8</span>, .<span class="dv">5</span>), <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">data =</span> d, <span class="fu">aes</span>(<span class="fu">as.factor</span>(t), w), <span class="at">height =</span> <span class="dv">0</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Weight (g)"</span>, <span class="at">x =</span> <span class="st">"Time (years)"</span>) <span class="sc">+</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette =</span> <span class="st">"Reds"</span>, <span class="at">name =</span> <span class="st">""</span>) <span class="sc">+</span> </span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Global prediction of weight-at-age"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/plot%20the%20model-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We can also explore the predictions for some of the individuals (first 20 here), and relate that to data and the global prediction. The model seems to have a reasonable global prediction and at the same time a good fit to the individual fish.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>nd2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">expand.grid</span>(<span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">max</span>(d<span class="sc">$</span>t),</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">ID =</span> <span class="fu">head</span>(<span class="fu">unique</span>(d<span class="sc">$</span>ID), <span class="dv">20</span>))) <span class="co"># Use 16 IDs for easier plotting</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>pred2 <span class="ot">&lt;-</span> <span class="fu">predicted_draws</span>(vb_fit, <span class="at">newdata =</span> nd2, <span class="at">ndraws =</span> <span class="dv">1000</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(pred2, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">as.factor</span>(t), <span class="at">y =</span> w)) <span class="sc">+</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>ID) <span class="sc">+</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_lineribbon</span>(<span class="fu">aes</span>(<span class="at">y =</span> .prediction, <span class="at">color =</span> <span class="st">"ID-prediction"</span>), <span class="at">.width =</span> <span class="fu">c</span>(.<span class="dv">99</span>), <span class="at">alpha =</span> <span class="fl">0.8</span>, <span class="at">size =</span> <span class="fl">0.5</span>, <span class="at">fill =</span> <span class="st">"grey90"</span>) <span class="sc">+</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> d <span class="sc">%&gt;%</span> <span class="fu">filter</span>(ID <span class="sc">%in%</span> <span class="fu">head</span>(<span class="fu">unique</span>(d<span class="sc">$</span>ID), <span class="dv">20</span>)), <span class="fu">aes</span>(t, w, <span class="at">color =</span> <span class="st">"Data"</span>), <span class="at">size =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> pred <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(t) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">median_pred =</span> <span class="fu">median</span>(.prediction)),</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>            <span class="fu">aes</span>(t, median_pred, <span class="at">color =</span> <span class="st">"Global prediction"</span>), <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">palette =</span> <span class="st">"Set1"</span>, <span class="at">name =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Weight (g)"</span>, <span class="at">x =</span> <span class="st">"Time (years)"</span>) <span class="sc">+</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"bottom"</span>) <span class="sc">+</span> </span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">fill =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"grey80"</span>)))) <span class="sc">+</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Individual-level and global prediction vs. data"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/plot%20individual%20random%20effects-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>What is the <span class="math inline">\(W_\infty\)</span>? We can visualize that by plotting the rates of anabolism and catabolism, and see where they intersect (i.e., where <span class="math inline">\(dW/dt=0\)</span>):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pars <span class="ot">&lt;-</span> <span class="fu">summary</span>(vb_fit)<span class="sc">$</span>fixed <span class="sc">%&gt;%</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">par =</span> <span class="fu">str_remove</span>(rowname, <span class="at">pattern =</span> <span class="st">"_Intercept"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(par, Estimate) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> par, <span class="at">values_from =</span> Estimate)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">mass =</span> <span class="fu">log</span>(<span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">3</span>, <span class="at">to =</span> <span class="dv">400</span>, <span class="at">by =</span> <span class="fl">0.1</span>))) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Anabolism =</span> pars<span class="sc">$</span>a<span class="sc">*</span>mass<span class="sc">^</span>(<span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>),</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">Catabolism =</span> pars<span class="sc">$</span>b<span class="sc">*</span>mass<span class="sc">^</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">c</span>(Anabolism, Catabolism), <span class="at">names_to =</span> <span class="st">"Rate"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="fu">exp</span>(mass), value, <span class="at">color =</span> Rate)) <span class="sc">+</span> </span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Mass"</span>, <span class="at">y =</span> <span class="st">"Rate per year"</span>) <span class="sc">+</span> </span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">palette =</span> <span class="st">"Set1"</span>, <span class="at">name =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Anabolism vs. catabolism"</span>) <span class="sc">+</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="fl">0.9</span>, <span class="fl">0.1</span>),</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="cn">NA</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>To wrap it up and link back to the motivation for this model. In my case, I want the parameters <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> with uncertainty and without having to make assumptions about isometric growth or certain scaling exponents. Because with <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> and the Pütter ODE (rhyme not intended), I can for loop change in weight for any time step (e.g., daily if I divide by 365), and I can add things like seasonality (temperature). Here I exemplify the for loop approach and compare it to data, the global predictions and the distribution of <span class="math inline">\(W_\infty\)</span> that we get from this relation: <span class="math inline">\(W_\infty=(H/k)^{1/(1–d)}\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>max_age <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>weight_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">weight =</span> <span class="fu">c</span>(pars<span class="sc">$</span>weight0, <span class="fu">rep</span>(<span class="cn">NA</span>, max_age)),</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">age =</span> <span class="fu">c</span>(<span class="dv">0</span><span class="sc">:</span>max_age),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">anabolism =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, max_age <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">catabolism =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, max_age <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                        <span class="at">dw =</span> <span class="fu">rep</span>(<span class="cn">NA</span>, max_age <span class="sc">+</span> <span class="dv">1</span>))</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span><span class="fu">nrow</span>(weight_df)){</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  anabolism <span class="ot">&lt;-</span> pars<span class="sc">$</span>a<span class="sc">*</span>weight_df[i<span class="dv">-1</span>, <span class="st">"weight"</span>]<span class="sc">^</span>(<span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  catabolism <span class="ot">&lt;-</span> pars<span class="sc">$</span>b<span class="sc">*</span>weight_df[i<span class="dv">-1</span>, <span class="st">"weight"</span>]<span class="sc">^</span>(<span class="dv">1</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  dw <span class="ot">&lt;-</span> anabolism <span class="sc">-</span> catabolism</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  weight_df[i, <span class="st">"anabolism"</span>] <span class="ot">&lt;-</span> anabolism</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  weight_df[i, <span class="st">"catabolism"</span>] <span class="ot">&lt;-</span> catabolism</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  weight_df[i, <span class="st">"dw"</span>] <span class="ot">&lt;-</span> dw</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  weight_df[i, <span class="st">"weight"</span>] <span class="ot">&lt;-</span> weight_df[i<span class="dv">-1</span>, <span class="st">"weight"</span>] <span class="sc">+</span> dw</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Get new prediction with a longer time span to get the asymptote</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>nd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span>max_age)</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Predict from the log-normal model</span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">predicted_draws</span>(vb_fit, <span class="at">newdata =</span> nd, <span class="at">ndraws =</span> <span class="dv">1000</span>, <span class="at">re_formula =</span> <span class="cn">NA</span>)</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's plot the data, the model prediction and the "manual" prediction using the for loops and our parameter estimates.</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(d, <span class="fu">aes</span>(t, w)) <span class="sc">+</span> </span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_lineribbon</span>(<span class="at">data =</span> pred, <span class="fu">aes</span>(t, .prediction, <span class="at">color =</span> <span class="st">"Global prediction"</span>), <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, <span class="at">.width =</span> <span class="fu">c</span>(.<span class="dv">99</span>, .<span class="dv">95</span>, .<span class="dv">8</span>, .<span class="dv">5</span>), <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">height =</span> <span class="dv">0</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span>  </span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> weight_df, <span class="fu">aes</span>(age, <span class="fu">exp</span>(weight), <span class="at">color =</span> <span class="st">"Manual prediction"</span>), <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">palette =</span> <span class="st">"Set1"</span>, <span class="at">name =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette =</span> <span class="st">"Reds"</span>, <span class="at">name =</span> <span class="st">""</span>) <span class="sc">+</span> </span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">700</span>)) <span class="sc">+</span> </span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Weight (g)"</span>, <span class="at">x =</span> <span class="st">"Time (years)"</span>) <span class="sc">+</span></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="fu">c</span>(<span class="fl">0.15</span>, <span class="fl">0.95</span>),</span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">fill =</span> <span class="cn">NA</span>)),</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>         <span class="at">fill =</span> <span class="st">"none"</span>)</span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Get w_inf not as a fixed value but as a distribution given the posterior for a and b</span></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> post_draws <span class="ot">&lt;-</span> brms<span class="sc">::</span><span class="fu">as_draws_df</span>(vb_fit) <span class="sc">%&gt;%</span> </span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">w_inf =</span> <span class="fu">exp</span>((b_a_Intercept<span class="sc">/</span>b_b_Intercept)<span class="sc">^</span>(<span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>(<span class="dv">2</span><span class="sc">/</span><span class="dv">3</span>))))) <span class="sc">%&gt;%</span> </span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(w_inf <span class="sc">&lt;</span> <span class="dv">700</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(w_inf)) <span class="sc">+</span> </span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>() <span class="sc">+</span></span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">"Density"</span>) <span class="sc">+</span></span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">700</span>)) <span class="sc">+</span></span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.05</span>)) <span class="sc">+</span></span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>  <span class="cn">NULL</span></span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>p1 <span class="sc">+</span> p2 <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/manual%20calculations-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+
+<section id="further-reading-on-von-bertalanffy-and-golt" class="level5">
+<h5 class="anchored" data-anchor-id="further-reading-on-von-bertalanffy-and-golt">Further reading on von Bertalanffy and GOLT</h5>
+<section id="global-change-biology" class="level6">
+<h6 class="anchored" data-anchor-id="global-change-biology">Global Change Biology</h6>
+<p>Lefevre, S., McKenzie, D. J., and Nilsson, G. E. 2017. Models projecting the fate of fish populations under climate change need to be based on valid physiological mechanisms. Global Change Biology, 23: 3449–3459.</p>
+<p>Pauly, D., and Cheung, W. W. L. 2018. Sound physiological knowledge and principles in modeling shrinking of fishes under climate change. Global Change Biology, 24: e15–e26.</p>
+<p>Lefevre, S., McKenzie, D. J., and Nilsson, G. E. 2018. In modelling effects of global warming, invalid assumptions lead to unrealistic projections. Global Change Biology, 24: 553–556.</p>
+<p>Pauly, D., and Cheung, W. W. L. 2018. On confusing cause and effect in the oxygen limitation of fish. Global Change Biology, 24: e743–e744.</p>
+</section>
+<section id="trends-in-ecology-and-evolution" class="level6">
+<h6 class="anchored" data-anchor-id="trends-in-ecology-and-evolution">Trends in Ecology and Evolution</h6>
+<p>Marshall, D. J., and White, C. R. 2019. Have we outgrown the existing models of growth? Trends in Ecology &amp; Evolution, 34: 102–111.</p>
+<p>Pauly, D. 2019. Female Fish Grow Bigger – Let’s Deal with It. Trends in Ecology &amp; Evolution, 34, 3</p>
+<p>Marshall, D. J., and White, C. R. 2019. Aquatic life history trajectories are shaped by selection, not oxygen limitation. Trends in Ecology &amp; Evolution, 34: 182–184.</p>
+
+
+</section>
+</section>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-bevertonDynamicsExploitedFish1957" class="csl-entry" role="doc-biblioentry">
+Beverton, Raymond J. H., and Sidney J. Holt. 1957. <em>On the <span>Dynamics</span> of <span>Exploited Fish Populations</span></em>. <span>Fishery Investigations London Series 2, Volume 19.</span>
+</div>
+<div id="ref-clarkeScalingMetabolicRate1999" class="csl-entry" role="doc-biblioentry">
+Clarke, A, and N M Johnston. 1999. <span>“Scaling of Metabolic Rate with Body Mass and Temperature in Teleost Fish.”</span> <em>Journal of Animal Ecology</em> 68: 893–905.
+</div>
+<div id="ref-essingtonBertalanffyGrowthFunction2001" class="csl-entry" role="doc-biblioentry">
+Essington, Timothy E., James F. Kitchell, and Carl J. Walters. 2001. <span>“The von <span>Bertalanffy</span> Growth Function, Bioenergetics, and the Consumption Rates of Fish.”</span> <em>Canadian Journal of Fisheries and Aquatic Sciences</em> 58 (11): 2129–38. <a href="https://doi.org/10.1139/cjfas-58-11-2129">https://doi.org/10.1139/cjfas-58-11-2129</a>.
+</div>
+<div id="ref-jerdeStrongEvidenceIntraspecific2019" class="csl-entry" role="doc-biblioentry">
+Jerde, Christopher L., Krista Kraskura, Erika J. Eliason, Samantha R. Csik, Adrian C. Stier, and Mark L. Taper. 2019. <span>“Strong <span>Evidence</span> for an <span>Intraspecific Metabolic Scaling Coefficient Near</span> 0.89 in <span>Fish</span>.”</span> <em>Front. Physiol.</em> 10 (September): 1166. <a href="https://doi.org/10.3389/fphys.2019.01166">https://doi.org/10.3389/fphys.2019.01166</a>.
+</div>
+<div id="ref-lindmarkOptimumGrowthTemperature2022" class="csl-entry" role="doc-biblioentry">
+Lindmark, Max, Jan Ohlberger, and Anna Gårdmark. 2022. <span>“Optimum Growth Temperature Declines with Body Size Within Fish Species.”</span> <em>Global Change Biology</em> 28 (7): 2259–71. <a href="https://doi.org/10.1111/gcb.16067">https://doi.org/10.1111/gcb.16067</a>.
+</div>
+<div id="ref-marshallHaveWeOutgrown2019" class="csl-entry" role="doc-biblioentry">
+Marshall, Dustin J., and Craig R. White. 2019. <span>“Have We Outgrown the Existing Models of Growth?”</span> <em>Trends in Ecology &amp; Evolution</em> 34 (2): 102–11. <a href="https://doi.org/10.1016/j.tree.2018.10.005">https://doi.org/10.1016/j.tree.2018.10.005</a>.
+</div>
+<div id="ref-paulyRelationshipsGillSurface1981" class="csl-entry" role="doc-biblioentry">
+Pauly, Daniel. 1981. <span>“The Relationships Between Gill Surface Area and Growth Performance in Fish: A Generalization of von <span>Bertalanffy</span>’s Theory of Growthl.”</span> <em>Meeresforschung</em>, no. 28: 251–82.
+</div>
+<div id="ref-paulyGilloxygenLimitationTheory2021" class="csl-entry" role="doc-biblioentry">
+———. 2021. <span>“The Gill-Oxygen Limitation Theory (<span>GOLT</span>) and Its Critics.”</span> <em>Science Advances</em> 7 (2): eabc6050. <a href="https://doi.org/10.1126/sciadv.abc6050">https://doi.org/10.1126/sciadv.abc6050</a>.
+</div>
+<div id="ref-puetterStudienUeberPhysiologische1920" class="csl-entry" role="doc-biblioentry">
+Pütter, August. 1920. <span>“<span>Studien über physiologische Ähnlichkeit VI. Wachstumsähnlichkeiten</span>.”</span> <em>Pflügers Arch.</em> 180 (1): 298–340. <a href="https://doi.org/10.1007/BF01755094">https://doi.org/10.1007/BF01755094</a>.
+</div>
+<div id="ref-rubnerGesetzeEnergieverbrauchsBei1902" class="csl-entry" role="doc-biblioentry">
+Rubner, M. 1902. <em>Die <span>Gesetze</span> Des <span>Energieverbrauchs</span> Bei Der <span>Ernährung</span></em>. <span>Berlin and Wien</span>: <span>Springer</span>.
+</div>
+<div id="ref-thunellOptimalEnergyAllocation" class="csl-entry" role="doc-biblioentry">
+Thunell, Viktor, Anna Gårdmark, Magnus Huss, and Yngvild Vindenes. n.d. <span>“Optimal Energy Allocation Trade-Off Driven by Size-Dependent Physiological and Demographic Responses to Warming.”</span> <em>Ecology</em> n/a (n/a): e3967. <a href="https://doi.org/10.1002/ecy.3967">https://doi.org/10.1002/ecy.3967</a>.
+</div>
+<div id="ref-ursinMathematicalModelAspects1967" class="csl-entry" role="doc-biblioentry">
+Ursin, Erik. 1967. <span>“A <span>Mathematical Model</span> of <span>Some Aspects</span> of <span>Fish Growth</span>, <span>Respiration</span>, and <span>Mortality</span>.”</span> <em>Journal of the Fisheries Research Board of Canada</em> 24 (11): 2355–453. <a href="https://doi.org/10.1139/f67-190">https://doi.org/10.1139/f67-190</a>.
+</div>
+<div id="ref-vonbertalanffyLawsMetabolismGrowth1957" class="csl-entry" role="doc-biblioentry">
+von Bertalanffy, L. 1957. <span>“Laws in Metabolism and Growth.”</span> <em>The Quarterly Review of Biology</em> 32 (3): 217–31.
+</div>
+</div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>In Pauly’s words this makes sense <em>“because it [catabolism] consists of the spontaneous de-naturation of the proteins and other molecules contributing to that weight”</em> <span class="citation" data-cites="paulyGilloxygenLimitationTheory2021">(<a href="#ref-paulyGilloxygenLimitationTheory2021" role="doc-biblioref">Pauly 2021</a>)</span>. Pauly’s GOLT is another attempt to justify assumptions in the von Bertalanffy model and to argue for a mechanistic basis of it. I won’t go in on that here, but I provide references below to some interesting comments and reply papers published <em>Trends in Ecology and Evolution</em> and <em>Global Change Biology</em> between 2017 and 2019.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>I’m sure someone has since succeeded in fitting a VBGE for hake!<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
