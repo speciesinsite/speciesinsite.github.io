@@ -1,7 +1,7 @@
 ---
 title: "Fitting a Pütter/von Bertalanffy ODE in brms"
 author: "Max Lindmark"
-date: "2023-02-04"
+date: "2023-02-15"
 categories: [R, Bayesian, stats, ode, brms]
 image: "image.jpg"
 bibliography: references.bib
@@ -17,7 +17,7 @@ $$W_t=W_\infty(1-\exp(-K_{sp}(t-t_0)))^3$$ In other words, the von Bertalanffy e
 
 An even more special version of this model is the **specialized** von Bertalanffy equation [@bevertonDynamicsExploitedFish1957; @paulyRelationshipsGillSurface1981; @ursinMathematicalModelAspects1967]. By also assuming that $W\propto L^3$ and that $b=2/3$, you can cast this as a model of length (which in easier to measure in a fish while on a boat):
 
-$$L_t=L_\infty(1-\exp(-K(t-t_0)))$$ And this is the version most fisheries biologists are familiar with. It's the most common model for describing length as a function of age, very likely because it was adopted by Beverton and Holt [-@bevertonDynamicsExploitedFish1957]. von Bertalanffy [-@vonbertalanffyLawsMetabolismGrowth1957] writes:
+$$L_t=L_\infty(1-\exp(-K(t-t_0)))$$ And this is the version we all love and most fisheries biologists are familiar with. It's the most common model for describing length as a function of age, very likely because it was adopted by Beverton and Holt [-@bevertonDynamicsExploitedFish1957]. von Bertalanffy [-@vonbertalanffyLawsMetabolismGrowth1957] writes:
 
 "*It appears that the "Bertalanffy growth equation" is widely applied in international fisheries. It has been found to fit the commercially exploited fish species studied by the Fisheries Laboratory of the Ministry of Agriculture, Fisheries and Food at Lowestoft (England), with the possible exception of the hake (Wimpenny, pers. commun.)*"[^2]
 
@@ -122,7 +122,7 @@ vb_formula <- bf(w ~ vb_ode(t, weight0, a, b),
                  b ~ 1 + (1|ID),
                  nl = TRUE)
 
-# This priors could be discussed...
+# These priors could be discussed...
 vb_priors <- c(prior(normal(0.00001, 1), nlpar = weight0, lb = 0.00001),
                prior(normal(1, 1), nlpar = a, lb = 0.00001),
                prior(normal(0.5, 1), nlpar = b, lb = 0.00001),
